@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h3>Choose Origin & Destination Airports</h3>
+        <form id="searchForm">
+            <div class="select-container">
+                <label for="origin">Origin</label>
+                <select id="origin" name="origin">
+                    <option value="" disabled selected>Select Origin</option>
+                    <option value="JFK">JFK</option>
+                    <option value="DEL">DEL</option>
+                    <option value="SYD">SYD</option>
+                    <option value="BOM">BOM</option>
+                    <option value="BNE">BNE</option>
+                    <option value="BLR">BLR</option>
+                </select>
+            </div>
+            <div class="select-container">
+                <label for="destination">Destination</label>
+                <select id="destination" name="destination">
+                    <option value="" disabled selected>Select Destination</option>
+                    <option value="JFK">JFK</option>
+                    <option value="DEL">DEL</option>
+                    <option value="SYD">SYD</option>
+                    <option value="LHR">LHR</option>
+                    <option value="CDG">CDG</option>
+                    <option value="DOH">DOH</option>
+                    <option value="SIN">SIN</option>
+                </select>
+            </div>
+            <div class="select-container">
+                <label for="cabin">Cabin Selection</label>
+                <select id="cabin" name="cabin">
+                    <option value="" disabled selected>Select Cabin</option>
+                    <option value="Economy">Economy</option>
+                    <option value="Business">Business</option>
+                    <option value="First">First</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <label class="switch">
+                    <input type="checkbox" id="showProFilter">
+                    <span class="slider round"></span>
+                </label>
+                <span class="filter-label">Show <span class="filter-label-red">Pro Filter</span></span>
+            </div>
+            <button type="button" onclick="submitForm()">Search</button>
+        </form>
+        <!-- <p id="dateRange">2024-07-09 - 2024-10-07</p> -->
+        <div id="results" class="con"></div>
+    </div>
+    <script>
+        const startDate = '2024-07-09T00:00:00Z';
+        const endDate = '2024-10-07T00:00:00Z';
+
+        function formatDate(dateStr) {
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return new Date(dateStr).toLocaleDateString('en-GB', options).replace(/\//g, '-');
+        }
+
+        document.getElementById('dateRange').textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
+        function submitForm() {
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            const cabin = document.getElementById('cabin').value;
+            const showProFilter = document.getElementById('showProFilter').checked;
+
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    origin: origin,
+                    destination: destination,
+                    cabin: cabin,
+                    showProFilter: showProFilter,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = ''; // Clear previous results
+
+                data.forEach(entry => {
+                    const resultHTML = `
+                        <div class="klm">
+                            <img src="" alt="logo"/>
+                            <h1>${entry.partner_program}</h1>
+                            <div>${origin} -> ${destination}</div>
+                            <p>${formatDate(startDate)} - ${formatDate(endDate)}</p>
+                            <div>${entry.min_business_miles} + $${entry.min_business_tax}</div>
+                            <p>Min Economy Miles</p>
+                            <h2>${entry.min_economy_miles} + $${entry.min_economy_tax}</h2>
+                            <p>Min First Miles</p>
+                        </div>
+                    `;
+                    resultsDiv.insertAdjacentHTML('beforeend', resultHTML);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
