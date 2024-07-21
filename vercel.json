@@ -4,6 +4,6 @@
         {"src":"app.py","use":"@vercel/python"}
     ],
     "routes":[
-        {"src":"/(.*)","dost":"app.py"}
+        {"src":"/(.*)","templates":"app.py"}
     ]
 }
